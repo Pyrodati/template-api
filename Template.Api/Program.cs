@@ -4,6 +4,7 @@ using Scrutor;
 using System.Text.Json.Serialization;
 using Template.Application.Abstractions;
 using Template.Infrastructure;
+using Template.Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,7 +91,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("pimPolicy");
+app.UseCors("templatePolicy");
+
+app.UseMiddleware<GlobalExceptionHandler>();
 
 app.MapControllers();
 
