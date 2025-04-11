@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Scrutor;
 using System.Text.Json.Serialization;
+using Template.Api;
+using Template.Api.OptionsSetup;
 using Template.Application.Abstractions;
 using Template.Infrastructure;
 using Template.Presentation.Middlewares;
@@ -33,6 +36,8 @@ builder
     .AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
     .AddApplicationPart(Template.Presentation.AssemblyReference.Assembly);
+
+builder.Services.AddCustomAuthorization();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
@@ -72,6 +77,12 @@ builder.Services.AddSwaggerGen(c =>
                 });
 });
 
+builder.Services.ConfigureOptions<JwtOptionsSetup>();
+builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "templatePolicy",
@@ -94,6 +105,8 @@ if (app.Environment.IsDevelopment())
 app.UseCors("templatePolicy");
 
 app.UseMiddleware<GlobalExceptionHandler>();
+
+app.UseAuthorization();
 
 app.MapControllers();
 
